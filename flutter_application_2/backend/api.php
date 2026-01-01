@@ -20,7 +20,12 @@ $action = $_GET['action'] ?? '';
 // GET BOOKS ✅
 // ==========================
 if ($action === 'get_books') {
-  $result = mysqli_query($conn, "SELECT * FROM books ORDER BY id DESC");
+  $result = mysqli_query($conn, "SELECT * FROM railway.books ORDER BY id DESC");
+
+  if (!$result) {
+    echo json_encode(["error" => mysqli_error($conn)]);
+    exit;
+  }
 
   $books = [];
   while ($row = mysqli_fetch_assoc($result)) {
@@ -41,7 +46,7 @@ if ($action === 'add_book') {
   $image = $_GET['image'] ?? '';
 
   $stmt = $conn->prepare(
-    "INSERT INTO books (title, author, description, image)
+    "INSERT INTO railway.books (title, author, description, image)
      VALUES (?, ?, ?, ?)"
   );
   $stmt->bind_param("ssss", $title, $author, $description, $image);
@@ -51,8 +56,5 @@ if ($action === 'add_book') {
   exit;
 }
 
-// ==========================
-// UNKNOWN ACTION ❌
-// ==========================
 http_response_code(400);
 echo json_encode(["error" => "Invalid action"]);
