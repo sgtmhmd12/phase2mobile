@@ -1,9 +1,9 @@
 <?php
-$host = "mainline.proxy.rlwy.net";
-$user = "root";              // <-- value of MYSQLUSER
-$pass = "HXIovQcKJlVKbryWaFqSeCyoGLOzSDdj";  // <-- value of MYSQLPASSWORD
-$db   = "railway";              // <-- value of MYSQLDATABASE
-$port = 3306;                  // <-- value of MYSQLPORT
+$host = "crossover.proxy.rlwy.net";
+$user = "root";
+$pass = "HXIovQcKJlVKbryWaFqSeCyoGLOzSDdj";
+$db   = "railway";
+$port = 56796;
 
 $conn = new mysqli($host, $user, $pass, $db, $port);
 
