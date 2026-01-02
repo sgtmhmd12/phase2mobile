@@ -1,11 +1,6 @@
 <?php
 $publicUrl = $_ENV["MYSQL_PUBLIC_URL"];
 
-/*
- Example:
- mysql://root:password@containers-us-west-123.railway.app:6543/railway
-*/
-
 $parts = parse_url($publicUrl);
 
 $host = $parts["host"];
