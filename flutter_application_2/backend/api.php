@@ -2,59 +2,92 @@
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
+/* =========================
+   CORS HEADERS (REQUIRED)
+========================= */
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json; charset=UTF-8");
 
+/* Handle preflight */
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-  http_response_code(200);
-  exit;
+    http_response_code(200);
+    exit;
 }
 
 include "db.php";
 
 $action = $_GET['action'] ?? '';
 
-// ==========================
-// GET BOOKS ✅
-// ==========================
+/* =========================
+   GET BOOKS
+========================= */
 if ($action === 'get_books') {
-  $result = mysqli_query($conn, "SELECT * FROM railway.books ORDER BY id DESC");
 
-  if (!$result) {
-    echo json_encode(["error" => mysqli_error($conn)]);
+    $result = mysqli_query($conn, "SELECT * FROM books ORDER BY id DESC");
+
+    if (!$result) {
+        http_response_code(500);
+        echo json_encode(["error" => mysqli_error($conn)]);
+        exit;
+    }
+
+    $books = [];
+    while ($row = mysqli_fetch_assoc($result)) {
+        $books[] = $row;
+    }
+
+    echo json_encode($books);
     exit;
-  }
-
-  $books = [];
-  while ($row = mysqli_fetch_assoc($result)) {
-    $books[] = $row;
-  }
-
-  echo json_encode($books);
-  exit;
 }
 
-// ==========================
-// ADD BOOK
-// ==========================
-if ($action === 'add_book') {
-  $title = $_GET['title'] ?? '';
-  $author = $_GET['author'] ?? '';
-  $description = $_GET['description'] ?? '';
-  $image = $_GET['image'] ?? '';
+/* =========================
+   ADD BOOK (POST ONLY)
+========================= */
+if ($action === 'add_book' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
-  $stmt = $conn->prepare(
-    "INSERT INTO railway.books (title, author, description, image)
-     VALUES (?, ?, ?, ?)"
-  );
-  $stmt->bind_param("ssss", $title, $author, $description, $image);
-  $stmt->execute();
+    $data = json_decode(file_get_contents("php://input"), true);
 
-  echo json_encode(["success" => true]);
-  exit;
+    $title = $data['title'] ?? '';
+    $author = $data['author'] ?? '';
+    $description = $data['description'] ?? '';
+    $image = $data['image'] ?? '';
+
+    if ($title === '' || $author === '' || $description === '') {
+        http_response_code(400);
+        echo json_encode(["success" => false, "error" => "Missing fields"]);
+        exit;
+    }
+
+    $stmt = $conn->prepare(
+        "INSERT INTO books (title, author, description, image)
+         VALUES (?, ?, ?, ?)"
+    );
+
+    if (!$stmt) {
+        http_response_code(500);
+        echo json_encode(["success" => false, "error" => $conn->error]);
+        exit;
+    }
+
+    $stmt->bind_param("ssss", $title, $author, $description, $image);
+
+    if (!$stmt->execute()) {
+        http_response_code(500);
+        echo json_encode(["success" => false, "error" => $stmt->error]);
+        exit;
+    }
+
+    echo json_encode([
+        "success" => true,
+        "id" => $stmt->insert_id
+    ]);
+    exit;
 }
 
+/* =========================
+   INVALID ACTION
+========================= */
 http_response_code(400);
 echo json_encode(["error" => "Invalid action"]);
