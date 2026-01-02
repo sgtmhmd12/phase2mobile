@@ -11,26 +11,25 @@ class Page2 extends StatefulWidget {
 }
 
 class _Page2State extends State<Page2> {
-  bool isLoading = true; // to retrieve books
-  List<Map<String, dynamic>> bookList = []; // list of books
+  bool isLoading = true;
+  List<Map<String, dynamic>> bookList = [];
 
   @override
   void initState() {
     super.initState();
-    // Fetch data from backend when screen initializes
     readData();
   }
 
-  // FETCH BOOKS FROM PHP BACKEND
+  // =========================
+  // FETCH BOOKS
+  // =========================
   Future<void> readData() async {
     setState(() {
       isLoading = true;
     });
 
-    // 🔗 PHP API URL (replace with your real one)
     final url =
-    "https://YOUR-RAILWAY-DOMAIN.up.railway.app/Books.php?action=get_books";
-
+        "https://phase2mobile.onrender.com/api.php?action=get_books";
 
     try {
       final response = await http.get(Uri.parse(url));
@@ -53,11 +52,16 @@ class _Page2State extends State<Page2> {
         });
       }
     } catch (error) {
-      throw error;
+      debugPrint("Fetch error: $error");
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
+  // =========================
   // DELETE BOOK
+  // =========================
   Future<void> deleteBookItem(String id) async {
     final bool? confirmDelete = await showDialog<bool>(
       context: context,
@@ -68,16 +72,14 @@ class _Page2State extends State<Page2> {
         actions: <Widget>[
           TextButton(
             child: const Text('Cancel'),
-            onPressed: () {
-              Navigator.of(ctx).pop(false);
-            },
+            onPressed: () => Navigator.of(ctx).pop(false),
           ),
           TextButton(
-            child: const Text('Delete',
-                style: TextStyle(color: Colors.red)),
-            onPressed: () {
-              Navigator.of(ctx).pop(true);
-            },
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: Colors.red),
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
           ),
         ],
       ),
@@ -86,16 +88,15 @@ class _Page2State extends State<Page2> {
     if (confirmDelete == true) {
       try {
         final deleteUrl =
-            "https://csci410.infinityfreeapp.com/api.php?action=delete_book&id=$id";
+            "https://phase2mobile.onrender.com/api.php?action=delete_book&id=$id";
 
-        final response =
-            await http.delete(Uri.parse(deleteUrl));
+        final response = await http.get(Uri.parse(deleteUrl));
 
         if (response.statusCode == 200) {
-          readData(); // refresh list after deletion
+          readData();
         }
       } catch (error) {
-        throw error;
+        debugPrint("Delete error: $error");
       }
     }
   }
@@ -109,8 +110,7 @@ class _Page2State extends State<Page2> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
             Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(
-                  builder: (context) => Homeadmin()),
+              MaterialPageRoute(builder: (_) => const Homeadmin()),
               (Route<dynamic> route) => false,
             );
           },
@@ -129,7 +129,7 @@ class _Page2State extends State<Page2> {
                   child: ListView.builder(
                     padding: const EdgeInsets.all(8),
                     itemCount: bookList.length,
-                    itemBuilder: (BuildContext context, int index) {
+                    itemBuilder: (context, index) {
                       final book = bookList[index];
 
                       return Card(
@@ -137,8 +137,8 @@ class _Page2State extends State<Page2> {
                             horizontal: 10, vertical: 5),
                         elevation: 3,
                         shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(10)),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                         child: ListTile(
                           contentPadding:
                               const EdgeInsets.all(12),
@@ -177,7 +177,7 @@ class _Page2State extends State<Page2> {
                             icon: const Icon(Icons.delete,
                                 color: Colors.red),
                             onPressed: () =>
-                                deleteBookItem(book['id']),
+                                deleteBookItem(book['id'].toString()),
                           ),
                         ),
                       );

@@ -14,8 +14,9 @@ class Homeadmin extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => const login()),
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const login()),
             );
           },
         ),
@@ -45,7 +46,7 @@ class Homeadmin extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const Page1()),
+                    MaterialPageRoute(builder: (_) => const Page1()),
                   );
                 },
                 style: ElevatedButton.styleFrom(
@@ -63,7 +64,7 @@ class Homeadmin extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const Page2()),
+                    MaterialPageRoute(builder: (_) => const Page2()),
                   );
                 },
                 style: ElevatedButton.styleFrom(

@@ -20,9 +20,9 @@ class _HomeuserState extends State<Homeuser> {
   List<Map<String, dynamic>> _books = [];
   List<Map<String, dynamic>> _filteredBooks = [];
 
-  // ============================
-  // INIT
-  // ============================
+  /* =========================
+     INIT
+  ========================= */
   @override
   void initState() {
     super.initState();
@@ -30,9 +30,9 @@ class _HomeuserState extends State<Homeuser> {
     _searchController.addListener(_filterBooks);
   }
 
-  // ============================
-  // FETCH BOOKS
-  // ============================
+  /* =========================
+     FETCH BOOKS
+  ========================= */
   Future<void> fetchBooks() async {
     setState(() => _isLoading = true);
 
@@ -43,11 +43,18 @@ class _HomeuserState extends State<Homeuser> {
     try {
       final response = await http.get(url);
 
+      debugPrint("STATUS: ${response.statusCode}");
+      debugPrint("BODY: ${response.body}");
+
       if (response.statusCode == 200) {
         final List data = json.decode(response.body);
 
-        _books = data.cast<Map<String, dynamic>>();
-        _filteredBooks = List.from(_books);
+        setState(() {
+          _books = data.cast<Map<String, dynamic>>();
+          _filteredBooks = List.from(_books);
+        });
+      } else {
+        debugPrint("Server error");
       }
     } catch (e) {
       debugPrint("Fetch error: $e");
@@ -56,9 +63,9 @@ class _HomeuserState extends State<Homeuser> {
     setState(() => _isLoading = false);
   }
 
-  // ============================
-  // SEARCH
-  // ============================
+  /* =========================
+     SEARCH
+  ========================= */
   void _filterBooks() {
     final query = _searchController.text.toLowerCase();
 
@@ -67,8 +74,14 @@ class _HomeuserState extends State<Homeuser> {
         _filteredBooks = List.from(_books);
       } else {
         _filteredBooks = _books.where((book) {
-          return (book['title'] ?? '').toString().toLowerCase().contains(query) ||
-              (book['author'] ?? '').toString().toLowerCase().contains(query) ||
+          return (book['title'] ?? '')
+                  .toString()
+                  .toLowerCase()
+                  .contains(query) ||
+              (book['author'] ?? '')
+                  .toString()
+                  .toLowerCase()
+                  .contains(query) ||
               (book['description'] ?? '')
                   .toString()
                   .toLowerCase()
@@ -84,9 +97,9 @@ class _HomeuserState extends State<Homeuser> {
     super.dispose();
   }
 
-  // ============================
-  // UI
-  // ============================
+  /* =========================
+     UI
+  ========================= */
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -103,7 +116,7 @@ class _HomeuserState extends State<Homeuser> {
         ),
       ),
 
-      // SEARCH BAR
+      /* SEARCH BAR */
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(10),
         child: TextField(
@@ -141,7 +154,7 @@ class _HomeuserState extends State<Homeuser> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // IMAGE
+                            /* IMAGE */
                             if (book['image'] != null &&
                                 book['image'].toString().isNotEmpty)
                               ClipRRect(
@@ -187,7 +200,6 @@ class _HomeuserState extends State<Homeuser> {
                                   ),
                                   const SizedBox(height: 12),
 
-                                  // ACTIONS
                                   Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,

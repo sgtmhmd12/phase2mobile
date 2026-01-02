@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
+
 import 'homeadmin.dart';
 
 class Page1 extends StatefulWidget {
@@ -17,21 +19,31 @@ class _Page1State extends State<Page1> {
   String author = "";
   String imageUrl = "";
 
+  /* =========================
+     ADD BOOK (POST)
+  ========================= */
   Future<void> addBook() async {
     if (!_form.currentState!.validate()) return;
     _form.currentState!.save();
 
-    final url =
-    "https://YOUR-RAILWAY-DOMAIN.up.railway.app/Books.php"
-    "?action=add_book"
-    "&title=${Uri.encodeComponent(title)}"
-    "&author=${Uri.encodeComponent(author)}"
-    "&description=${Uri.encodeComponent(description)}"
-    "&image=${Uri.encodeComponent(imageUrl)}";
+    final url = Uri.parse(
+      "https://phase2mobile.onrender.com/api.php?action=add_book",
+    );
 
     try {
       final response = await http
-          .get(Uri.parse(url))
+          .post(
+            url,
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: json.encode({
+              "title": title,
+              "author": author,
+              "description": description,
+              "image": imageUrl,
+            }),
+          )
           .timeout(const Duration(seconds: 10));
 
       if (!mounted) return;
@@ -43,7 +55,11 @@ class _Page1State extends State<Page1> {
         _form.currentState!.reset();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Server error: ${response.statusCode}")),
+          SnackBar(
+            content: Text(
+              "Server error: ${response.statusCode}\n${response.body}",
+            ),
+          ),
         );
       }
     } catch (e) {
@@ -54,6 +70,9 @@ class _Page1State extends State<Page1> {
     }
   }
 
+  /* =========================
+     UI
+  ========================= */
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,6 +101,7 @@ class _Page1State extends State<Page1> {
                 onSaved: (v) => title = v!,
               ),
               const SizedBox(height: 15),
+
               TextFormField(
                 decoration: const InputDecoration(labelText: "Author"),
                 validator: (v) =>
@@ -89,14 +109,17 @@ class _Page1State extends State<Page1> {
                 onSaved: (v) => author = v!,
               ),
               const SizedBox(height: 15),
+
               TextFormField(
-                decoration: const InputDecoration(labelText: "Description"),
+                decoration:
+                    const InputDecoration(labelText: "Description"),
                 maxLines: 4,
                 validator: (v) =>
                     v == null || v.isEmpty ? "Required" : null,
                 onSaved: (v) => description = v!,
               ),
               const SizedBox(height: 15),
+
               TextFormField(
                 decoration: const InputDecoration(
                   labelText: "Image URL (https://...)",
@@ -106,6 +129,7 @@ class _Page1State extends State<Page1> {
                 onSaved: (v) => imageUrl = v!,
               ),
               const SizedBox(height: 30),
+
               ElevatedButton(
                 onPressed: addBook,
                 child: const Text("Add Book"),
