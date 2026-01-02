@@ -16,7 +16,8 @@ class Homeadmin extends StatelessWidget {
           onPressed: () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (_) => const login()),
+              MaterialPageRoute(builder: (_) => const LoginPage()),
+
             );
           },
         ),

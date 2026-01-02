@@ -1,37 +1,60 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'homeadmin.dart';
 import 'homeuser.dart';
 
-// LOGIN PAGE (FRONTEND-ONLY, SAME AS NEWS APP)
-class login extends StatefulWidget {
-  const login({super.key});
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
 
   @override
-  _loginState createState() => _loginState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class _loginState extends State<login> {
-  final _form = GlobalKey<FormState>();
+class _LoginPageState extends State<LoginPage> {
+  final _formKey = GlobalKey<FormState>();
 
-  String _enteredId = "";
-  String _selectedRole = "user"; // default role
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
-  void handleLogin() {
-    if (_form.currentState!.validate()) {
-      _form.currentState!.save();
+  bool isLoading = false;
 
-      // TEMP: frontend-only navigation (same as original project)
-      if (_selectedRole == "admin") {
-        Navigator.push(
+  Future<void> handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => isLoading = true);
+
+    try {
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+
+      // 🔑 TEMP role logic (can be improved later)
+      if (userCredential.user!.email == "admin@bookapp.com") {
+        Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const Homeadmin()),
+          MaterialPageRoute(builder: (_) => const Homeadmin()),
         );
       } else {
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const Homeuser()),
+          MaterialPageRoute(builder: (_) => const Homeuser()),
         );
       }
+    } on FirebaseAuthException catch (e) {
+      String message = "Login failed";
+
+      if (e.code == 'user-not-found') {
+        message = "No user found for this email";
+      } else if (e.code == 'wrong-password') {
+        message = "Wrong password";
+      }
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      setState(() => isLoading = false);
     }
   }
 
@@ -39,21 +62,20 @@ class _loginState extends State<login> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "The Book App",
-          style: TextStyle(color: Colors.white),
-        ),
+        title: const Text("The Book App", style: TextStyle(color: Colors.white)),
         backgroundColor: const Color.fromARGB(255, 96, 3, 119),
+        centerTitle: true,
       ),
       body: Form(
-        key: _form,
+        key: _formKey,
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 10),
+                const SizedBox(height: 20),
+
                 const Text(
                   "Welcome!",
                   textAlign: TextAlign.center,
@@ -63,54 +85,45 @@ class _loginState extends State<login> {
                     color: Color.fromARGB(255, 96, 3, 119),
                   ),
                 ),
+
                 const SizedBox(height: 40),
 
-                // ID FIELD
+                // EMAIL
                 TextFormField(
+                  controller: emailController,
+                  keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
-                    labelText: "Enter your ID",
+                    labelText: "Email",
                     border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.person),
+                    prefixIcon: Icon(Icons.email),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your ID';
+                      return "Please enter your email";
+                    }
+                    if (!value.contains("@")) {
+                      return "Invalid email";
                     }
                     return null;
-                  },
-                  onSaved: (value) {
-                    _enteredId = value!;
                   },
                 ),
 
                 const SizedBox(height: 20),
 
-                const Text(
-                  "Choose your role:",
-                  style: TextStyle(fontSize: 18),
-                ),
-
-                // ADMIN RADIO
-                RadioListTile<String>(
-                  title: const Text("Admin"),
-                  value: "admin",
-                  groupValue: _selectedRole,
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedRole = value!;
-                    });
-                  },
-                ),
-
-                // USER RADIO
-                RadioListTile<String>(
-                  title: const Text("User"),
-                  value: "user",
-                  groupValue: _selectedRole,
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedRole = value!;
-                    });
+                // PASSWORD
+                TextFormField(
+                  controller: passwordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: "Password",
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.lock),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.length < 6) {
+                      return "Password must be at least 6 characters";
+                    }
+                    return null;
                   },
                 ),
 
@@ -121,15 +134,16 @@ class _loginState extends State<login> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor:
                         const Color.fromARGB(255, 96, 3, 119),
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 15),
-                    textStyle: const TextStyle(fontSize: 20),
+                    padding: const EdgeInsets.symmetric(vertical: 15),
                   ),
-                  onPressed: handleLogin,
-                  child: const Text(
-                    "Login",
-                    style: TextStyle(color: Colors.white),
-                  ),
+                  onPressed: isLoading ? null : handleLogin,
+                  child: isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          "Login",
+                          style: TextStyle(
+                              fontSize: 20, color: Colors.white),
+                        ),
                 ),
               ],
             ),

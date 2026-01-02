@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'cart_screen.dart';
 
 import 'login.dart';
 import 'details_users.dart';
@@ -104,17 +105,32 @@ class _HomeuserState extends State<Homeuser> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Books Feed"),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const login()),
-            );
-          },
-        ),
-      ),
+  title: const Text("Books Feed"),
+  leading: IconButton(
+    icon: const Icon(Icons.arrow_back),
+    onPressed: () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+
+      );
+    },
+  ),
+  actions: [
+    IconButton(
+      icon: const Icon(Icons.shopping_cart),
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const CartScreen(),
+          ),
+        );
+      },
+    ),
+  ],
+),
+
 
       /* SEARCH BAR */
       bottomNavigationBar: Padding(

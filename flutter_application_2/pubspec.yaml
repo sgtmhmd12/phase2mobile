@@ -10,8 +10,13 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # Existing dependencies
   http: ^1.2.1
   image_picker: ^1.0.7
+
+  # 🔥 Firebase (AUTH)
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
 
 dev_dependencies:
   flutter_test:
