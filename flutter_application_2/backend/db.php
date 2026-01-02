@@ -12,8 +12,8 @@ $user = $parts['user'];
 $pass = $parts['pass'];
 $port = $parts['port'];
 
-// ✅ FIX: clean database name
-$db = isset($parts['path']) ? explode('?', ltrim($parts['path'], '/'))[0] : 'railway';
+// ✅ HARD-SET THE DATABASE NAME
+$db = 'railway';
 
 $conn = new mysqli($host, $user, $pass, $db, $port);
 
